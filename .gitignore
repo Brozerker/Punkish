@@ -1,6 +1,33 @@
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.cachefile
+UpgradeLog*
+# Unity generated
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+UnityGenerated/
+# Visual Studio / MonoDevelop generated
+ExportedObj/
+*.svd
+*.userprefs
+*.csproj
+*.pidb
+*.suo
+*.sln
+*.user
+*.unityproj
+*.booproj
 # Windows image file caches
 Thumbs.db
+Thumbs.db.meta
 ehthumbs.db
+ehthumbs.db.meta
+
 
 # Folder config file
 Desktop.ini
