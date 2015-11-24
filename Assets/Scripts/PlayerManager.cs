@@ -13,14 +13,23 @@ public class PlayerManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (GetComponent<Rigidbody2D>().velocity.x < 0) {
-        }
-        if (GetComponent<Rigidbody2D>().velocity.x > 0) {
-        }
-        if (GetComponent<Rigidbody2D>().velocity.y < 0) {
-        }
-        if (GetComponent<Rigidbody2D>().velocity.y > 0) {
-        }
+         Vector2 moveDirection = GetComponent<Rigidbody2D>().velocity;
+         if (moveDirection != Vector2.zero) {
+             float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+         }
+        //if (GetComponent<Rigidbody2D>().velocity.x < 0) {
+        //    GetComponent<Sprite>(). .Rotate(-90,0,0);
+        //}
+        //if (GetComponent<Rigidbody2D>().velocity.x > 0) {
+        //    GetComponent<Transform>().Rotate(-90, 0, 0);
+        //}
+        //if (GetComponent<Rigidbody2D>().velocity.y < 0) {
+        //    GetComponent<Transform>().Rotate(-90, 0, 0);
+        //}
+        //if (GetComponent<Rigidbody2D>().velocity.y > 0) {
+        //    GetComponent<Transform>().Rotate(-90, 0, 0);
+        //}
 	}
     void FixedUpdate() {
         moveX = Input.GetAxis("Horizontal");
