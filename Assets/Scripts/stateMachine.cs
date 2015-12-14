@@ -7,7 +7,7 @@ public class stateMachine {
     STATES state;
     void enter() {
     }
-    void Update() {
+    public void Update(GameObject[] nodes) {
         switch (state) {
             case STATES.IDLE:
                 break;
@@ -15,7 +15,7 @@ public class stateMachine {
                 // if has line of site
                     // seek
                 // else
-                    // A*
+                    // A*(nodes)
                 break;
             case STATES.PATHFOLLOW:
                 // patrol
