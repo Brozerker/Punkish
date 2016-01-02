@@ -1,24 +1,29 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-enum STATES { IDLE, SEEK, PATHFOLLOW }
+public enum STATES { IDLE, SEEK, PATHFOLLOW }
 
 public class stateMachine {
-    STATES state;
-    void enter() {
+    private STATES state;
+
+    public stateMachine() {
+        state = STATES.SEEK; 
     }
-    public void Update(GameObject[] nodes) {
+    public void Update(enemyManager agent, GameObject[] nodes) {
+        GameObject player = GameObject.FindWithTag("Player");
         switch (state) {
             case STATES.IDLE:
+                Idle(agent, player);
                 break;
             case STATES.SEEK:
-                // if has line of site
-                    // seek
-                // else
-                    // A*(nodes)
+                Seek(agent, nodes[Random.Range(0, nodes.Length)]);
+                if (agent.lineOfSight(player))
+                    Seek(agent, player);
+                else
+                    state = STATES.PATHFOLLOW;
                 break;
             case STATES.PATHFOLLOW:
-                // patrol
+                Astar(agent, nodes, player);
                 break;
         }
     }
@@ -26,14 +31,31 @@ public class stateMachine {
 
     }
 
-    void Idle() {
-        // if player enters sensor bubble
-            // change state to SEEK
+    void Idle(enemyManager agent, GameObject player) {
+        if (Vector3.Distance(agent.transform.position, player.transform.position) < 10)
+            state = STATES.SEEK;
     }
-    void Seek() {
-        
+    void Seek(enemyManager agent, GameObject targetThing) {
+        if (agent.myTarget == null || Vector3.Distance(agent.transform.position, agent.myTarget.transform.position) < 0.5f)
+            agent.myTarget = targetThing;
+
+        Transform target = agent.myTarget.transform;
+        agent.transform.position = Vector2.MoveTowards(agent.transform.position, target.position, agent.speed * Time.deltaTime);
+        Vector2 moveDirection = agent.GetComponent<Rigidbody2D>().velocity;
+        if (moveDirection != Vector2.zero) {
+            float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+            agent.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        }
     }
-    void PathFollow() { }
+    void PathFollow(enemyManager agent, GameObject[] nodes) {
+        for (int i = 0; i < nodes.Length; ++i) {
+            if (Vector3.Distance(agent.gameObject.transform.position, nodes[i].transform.position) > 3) {
+                i--;
+            }
+            Seek(agent, nodes[i]);
+        }
+    }
+    void Astar(enemyManager agent, GameObject[] nodes, GameObject target) { }
 }
 
 //V2f seek(V2f target, Agent * agent) {
@@ -45,34 +67,37 @@ public class stateMachine {
 //    return force * (agent->maximumForce / agent->maximumSpeed);
 //}
 
-//V2f stop(Agent * agent, int a_ms) {
-//    if(!agent->velocity.isZero()) {
-//        V2f v = agent->velocity;
-//        if (a_ms != 0) {
-//            V2f perfectAccelToStop = -v * 1000.0f / (float)a_ms;
-//            float mag = perfectAccelToStop.magnitude();
-//            if(mag <= agent->maximumForce)
-//                return perfectAccelToStop;
-//        }
-//        if(v.magnitude() > 0)
-//            return -v * (agent->maximumForce / v.magnitude());
-//    }
-//    return V2f::ZERO();
+//V2f wander(Agent * agent) {
+//    //create structure for steering vector
+//    V2f newDirection;
+//    //get velocity from vector form of orientation
+//    newDirection = agent->velocity;
+//    //change orientation randomly betwee 0 - PI
+//    float randomRotation = Random::PRNGf(-90, 90);
+//    newDirection.rotate(randomRotation/180);
+//    //output steering
+//    return newDirection;
 //}
 
-//V2f flee(V2f target, Agent * agent) {
-////	vec2 desired = target - agent.position;
-//    V2f desired = agent->body.center - target;
-////	desired *= agent.maxSpeed / desired.mag();
-//    //desired *= agent->maximumSpeed / desired.magnitude();
-//    desired.normalize();
-//    desired *= agent->maximumSpeed;
-////	vec2 force = desired - agent.velocity;
-//    V2f force = desired - agent->velocity;
-////	return force * (agent.maxForce / agent.maxSpeed);
-//    return force * (agent->maximumForce / agent->maximumSpeed);
-////}
+//V2f followPath(Agent * a) {
+//    V2f pathOffset(1,1);
+//    //TemplateVector<Obstacle*> pillars = a->game->pillars;
+//    //Obstacle * closestPillar = pillars[0];
+//    //for(int i = 1; i < pillars.size(); i++) {
+//    //	if(V2f::distance(a->body.center, pillars[i]->getCenter()) < V2f::distance(a->body.center, closestPillar->getCenter())) {
+//    //		pillars[i] = closestPillar;
+//    //	}
+//    //}
+//    CircF path = a->circlePath; 
+//    V2f outNorm;
+//    V2f futurePos = a->body.center + a->velocity;
+//    V2f currentParam = path.getClosestPointOnEdge(futurePos, outNorm);
+//    V2f target = (futurePos + currentParam) / 2; 
+//    //currentPosition += pathOffset;
+//    a->direction = (target - a->body.center).normal();
+//    return seek(target, a);
 //}
+
 
 //V2f obstacleAvoidance(TemplateVector<Obstacle*> * obstacles, Obstacle * sensorArea, Agent * a, CalculationsFor_ObstacleAvoidance * calc) {
 //    if (calc) calc->clear();
@@ -179,7 +204,7 @@ public class stateMachine {
 //    V2f direction = target->body.center - agent->body.center;
 
 //    float distance = direction.magnitude();
-	
+
 //    //calculate current speed
 //    float speed = target->velocity.magnitude();
 
@@ -201,7 +226,7 @@ public class stateMachine {
 //    //calculate dist to target
 //    V2f direction = target->body.center - agent->body.center;
 //    float distance = direction.magnitude();
-	
+
 //    //calculate current speed
 //    float speed = target->velocity.magnitude();
 
@@ -225,35 +250,3 @@ public class stateMachine {
 //        return seek(target, agent);
 //    }
 //}
-
-//V2f wander(Agent * agent) {
-//    //create structure for steering vector
-//    V2f newDirection;
-//    //get velocity from vector form of orientation
-//    newDirection = agent->velocity;
-//    //change orientation randomly betwee 0 - PI
-//    float randomRotation = Random::PRNGf(-90, 90);
-//    newDirection.rotate(randomRotation/180);
-//    //output steering
-//    return newDirection;
-//}
-
-//V2f followPath(Agent * a) {
-//    V2f pathOffset(1,1);
-//    //TemplateVector<Obstacle*> pillars = a->game->pillars;
-//    //Obstacle * closestPillar = pillars[0];
-//    //for(int i = 1; i < pillars.size(); i++) {
-//    //	if(V2f::distance(a->body.center, pillars[i]->getCenter()) < V2f::distance(a->body.center, closestPillar->getCenter())) {
-//    //		pillars[i] = closestPillar;
-//    //	}
-//    //}
-//    CircF path = a->circlePath; 
-//    V2f outNorm;
-//    V2f futurePos = a->body.center + a->velocity;
-//    V2f currentParam = path.getClosestPointOnEdge(futurePos, outNorm);
-//    V2f target = (futurePos + currentParam) / 2; 
-//    //currentPosition += pathOffset;
-//    a->direction = (target - a->body.center).normal();
-//    return seek(target, a);
-//}
-

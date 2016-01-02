@@ -7,33 +7,53 @@ struct Node {
 }
 
 public class enemyManager : MonoBehaviour {
+    public Sprite up, down, left, right;
+    private RaycastHit2D rayHit;
     private Transform target;
     private Vector2 toMove;
     private stateMachine FSM;
     private GameObject[] nodes;
     public float speed = 0.5f;
     public ArrayList nodesToCopy;
-    public float range = 15f;
-    
+    public float sensorRange = 15f;
+    public bool arrived = false;
+    public GameObject myTarget = null;
 	// Use this for initialization
 	void Start () {
         nodes = GameObject.FindGameObjectsWithTag("Node");
+        FSM = new stateMachine();
     }
 
     // Update is called once per frame
     void Update() {
-        //FSM.Update(this, nodes);
-        target = GameObject.FindWithTag("Player").transform;
-        Debug.Log(Vector2.Distance(transform.position, target.position));
-       // if (Vector2.Distance(transform.position, target.position) < range) {
-            Debug.DrawLine(transform.position, target.position);
-            //Debug.DrawLine(transform.position);
-            transform.position = Vector2.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
-        //}
         Vector2 moveDirection = GetComponent<Rigidbody2D>().velocity;
-        if (moveDirection != Vector2.zero) {
-            float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        //if (moveDirection != Vector2.zero) {
+        //    float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+        //    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        //}
+        if (moveDirection.x < 0) {
+            GetComponent<SpriteRenderer>().sprite = left;
         }
+        if (moveDirection.x > 0) {
+            GetComponent<SpriteRenderer>().sprite = right;
+        }
+        if (moveDirection.y < 0) {
+            GetComponent<SpriteRenderer>().sprite = down;
+        }
+        if (moveDirection.y > 0) {
+            GetComponent<SpriteRenderer>().sprite = up;
+        }
+        FSM.Update(this, nodes);
+    }
+
+    public bool lineOfSight(GameObject target) {
+        //float distance = 60.0f;
+        Vector3 start = transform.position;
+        Vector3 end = target.transform.position;
+        Vector3 direction = (end - start).normalized;
+        rayHit = Physics2D.Raycast(start, direction);
+        if (rayHit.transform == target.transform)
+            return true;
+        return false;
     }
 }
