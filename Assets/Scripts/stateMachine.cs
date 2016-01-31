@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public enum STATES { IDLE, SEEK, PATHFOLLOW }
 
@@ -7,23 +8,24 @@ public class stateMachine {
     private STATES state;
 
     public stateMachine() {
-        state = STATES.SEEK; 
+        state = STATES.IDLE; 
     }
     public void Update(enemyManager agent, GameObject[] nodes) {
         GameObject player = GameObject.FindWithTag("Player");
+        Debug.Log(state);
         switch (state) {
             case STATES.IDLE:
                 Idle(agent, player);
                 break;
             case STATES.SEEK:
                 Seek(agent, nodes[Random.Range(0, nodes.Length)]);
-                if (agent.lineOfSight(player))
-                    Seek(agent, player);
-                else
-                    state = STATES.PATHFOLLOW;
+                //if (agent.lineOfSight(player))
+                //    Seek(agent, player);
+                //else
+                //    state = STATES.PATHFOLLOW;
                 break;
             case STATES.PATHFOLLOW:
-                Astar(agent, nodes, player);
+                Astar(agent.transform.position, nodes, player);
                 break;
         }
     }
@@ -32,8 +34,10 @@ public class stateMachine {
     }
 
     void Idle(enemyManager agent, GameObject player) {
-        if (Vector3.Distance(agent.transform.position, player.transform.position) < 10)
+        if (Vector2.Distance(agent.transform.position, player.transform.position) < 10) {
+            Debug.Log("Seek");
             state = STATES.SEEK;
+        }
     }
     void Seek(enemyManager agent, GameObject targetThing) {
         if (agent.myTarget == null || Vector3.Distance(agent.transform.position, agent.myTarget.transform.position) < 0.5f)
@@ -55,7 +59,37 @@ public class stateMachine {
             Seek(agent, nodes[i]);
         }
     }
-    void Astar(enemyManager agent, GameObject[] nodes, GameObject target) { }
+    bool Astar(Vector3 currentPos, GameObject[] nodes, GameObject target) {
+        // does currentPos have line of sight to target? 
+        if(lineOfSight(currentPos, target))
+            return true;
+      
+        // otherwise create a list of the nodes that currentPos can see 
+        GameObject[] allNodes = GameObject.FindGameObjectsWithTag("Node");
+        List<GameObject> visibleNodes = new List<GameObject>();
+        int count = 0;
+        for (int i = 0; i < allNodes.Length; ++i) {
+            if (lineOfSight(currentPos, allNodes[i])) {
+                visibleNodes.Add(allNodes[i]);
+                count++;
+            }
+        }
+
+        for (int i = 0; i < count; ++i) {
+
+        }
+        // and call Astar on the one that's closest to target
+        return false;
+    }
+
+    bool lineOfSight(Vector3 start, GameObject target) {
+        Vector3 end = target.transform.position;
+        Vector3 direction = (end - start).normalized;
+        RaycastHit2D rayHit = Physics2D.Raycast(start, direction);
+        if (rayHit.transform == target.transform)
+            return true;
+        return false;
+    }
 }
 
 //V2f seek(V2f target, Agent * agent) {
