@@ -6,7 +6,7 @@ public class PlayerManager : MonoBehaviour {
     private float moveX = 0;
     private float moveY = 0f;
     public Inventory inventory;
-
+    public Sprite Up, Down, Left, Right;
 
 
 
@@ -22,28 +22,31 @@ public class PlayerManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-         Vector2 moveDirection = GetComponent<Rigidbody2D>().velocity;
-         if (moveDirection != Vector2.zero) {
-             float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
-             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-         }
-        //if (GetComponent<Rigidbody2D>().velocity.x < 0) {
-        //    GetComponent<Sprite>(). .Rotate(-90,0,0);
-        //}
-        //if (GetComponent<Rigidbody2D>().velocity.x > 0) {
-        //    GetComponent<Transform>().Rotate(-90, 0, 0);
-        //}
-        //if (GetComponent<Rigidbody2D>().velocity.y < 0) {
-        //    GetComponent<Transform>().Rotate(-90, 0, 0);
-        //}
-        //if (GetComponent<Rigidbody2D>().velocity.y > 0) {
-        //    GetComponent<Transform>().Rotate(-90, 0, 0);
-        //}
-         if (Input.GetKeyDown(KeyCode.B))
-         {
-             inventory.Open();
 
-         }
+        Vector3 moveDirection = GetComponent<Rigidbody2D>().velocity;
+        //Debug.DrawLine(transform.position, moveDirection);
+        //if (moveDirection != Vector2.zero) {
+        //    float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+        //    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        //}
+        if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+            GetComponent<SpriteRenderer>().sprite = Left;
+        }
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
+            GetComponent<SpriteRenderer>().sprite = Right;
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow)) {
+            GetComponent<SpriteRenderer>().sprite = Down;
+        }
+        if (Input.GetKeyDown(KeyCode.UpArrow)) {
+            GetComponent<SpriteRenderer>().sprite = Up;
+        }
+        if(Input.GetKeyDown(KeyCode.RightControl)) {
+            
+        }
+        if (Input.GetKeyDown(KeyCode.B)) {
+            inventory.Open();
+        }
 	}
 
     private void OnTriggerEnter2D(Collider2D other)
