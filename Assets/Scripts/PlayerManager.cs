@@ -6,8 +6,12 @@ public class PlayerManager : MonoBehaviour {
     private float moveX = 0;
     private float moveY = 0f;
     public Inventory inventory;
+<<<<<<< HEAD
 
     public Sprite up, down, left, right, attk_up, attk_down, attk_left, attk_right;
+=======
+    public Sprite Up, Down, Left, Right;
+>>>>>>> origin/master
 
 
 
@@ -23,6 +27,7 @@ public class PlayerManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+<<<<<<< HEAD
          Vector2 moveDirection = GetComponent<Rigidbody2D>().velocity;
          if (moveDirection != Vector2.zero) {
              float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
@@ -57,8 +62,33 @@ public class PlayerManager : MonoBehaviour {
          if (Input.GetKeyDown(KeyCode.B))
          {
              inventory.Open();
+=======
+>>>>>>> origin/master
 
-         }
+        Vector3 moveDirection = GetComponent<Rigidbody2D>().velocity;
+        //Debug.DrawLine(transform.position, moveDirection);
+        //if (moveDirection != Vector2.zero) {
+        //    float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+        //    transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        //}
+        if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+            GetComponent<SpriteRenderer>().sprite = Left;
+        }
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
+            GetComponent<SpriteRenderer>().sprite = Right;
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow)) {
+            GetComponent<SpriteRenderer>().sprite = Down;
+        }
+        if (Input.GetKeyDown(KeyCode.UpArrow)) {
+            GetComponent<SpriteRenderer>().sprite = Up;
+        }
+        if(Input.GetKeyDown(KeyCode.RightControl)) {
+            
+        }
+        if (Input.GetKeyDown(KeyCode.B)) {
+            inventory.Open();
+        }
 	}
 
     private void OnTriggerEnter2D(Collider2D other)

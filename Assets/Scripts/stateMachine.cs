@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public enum STATES { IDLE, SEEK, PATHFOLLOW }
+public enum STATES { IDLE, SEEK, PATHFOLLOW, ATTACK}
 
 public class stateMachine {
     private STATES state;
@@ -12,22 +12,29 @@ public class stateMachine {
     }
     public void Update(enemyManager agent, GameObject[] nodes) {
         GameObject player = GameObject.FindWithTag("Player");
-        Debug.Log(state);
+        Debug.Log(state, agent);
         switch (state) {
             case STATES.IDLE:
-                Idle(agent, player);
+                Idle(agent, player); // checks if player is within range -> switches to seek
                 break;
             case STATES.SEEK:
-                Seek(agent, nodes[Random.Range(0, nodes.Length)]);
-                if (lineOfSight(agent.transform.position, player))
-                    Seek(agent, player);
-                else
+                //Seek(agent, nodes[Random.Range(0, nodes.Length)]);
+                Seek(agent, player);
+                if (Vector3.Distance(agent.transform.position, player.transform.position) < 3)
+                    state = STATES.ATTACK;
+                if (!agent.lineOfSight(player))
                     state = STATES.PATHFOLLOW;
                 break;
             case STATES.PATHFOLLOW:
                 GameObject[] path = new GameObject[nodes.Length];
-                if (Astar(agent.gameObject, nodes, path, player, 0))
+                if (Astar(agent.gameObject, nodes, path, player, 0)) {
+                    Debug.Log("Astar");
                     PathFollow(agent, path);
+                }
+                break;
+            case STATES.ATTACK:
+                if (Vector3.Distance(agent.transform.position, player.transform.position) > 3)
+                    state = STATES.SEEK;
                 break;
         }
     }
@@ -36,15 +43,15 @@ public class stateMachine {
     }
 
     void Idle(enemyManager agent, GameObject player) {
-        if (Vector2.Distance(agent.transform.position, player.transform.position) < 10 && lineOfSight(agent.transform.position, player)) {
+        if (Vector2.Distance(agent.transform.position, player.transform.position) < agent.sensorRange && agent.lineOfSight(player)) {
             Debug.Log("Seek");
             state = STATES.SEEK;
         }
     }
+
     void Seek(enemyManager agent, GameObject targetThing) {
         if (agent.myTarget == null || Vector3.Distance(agent.transform.position, agent.myTarget.transform.position) < 0.5f)
             agent.myTarget = targetThing;
-
         Transform target = agent.myTarget.transform;
         agent.transform.position = Vector2.MoveTowards(agent.transform.position, target.position, agent.speed * Time.deltaTime);
         Vector2 moveDirection = agent.GetComponent<Rigidbody2D>().velocity;
@@ -53,6 +60,7 @@ public class stateMachine {
             agent.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
     }
+
     void PathFollow(enemyManager agent, GameObject[] nodes) {
         for (int i = 0; i < nodes.Length; ++i) {
             if (Vector3.Distance(agent.gameObject.transform.position, nodes[i].transform.position) > 3) {
@@ -61,12 +69,19 @@ public class stateMachine {
             Seek(agent, nodes[i]);
         }
     }
+
     bool Astar(GameObject current, GameObject[] nodes, GameObject[] path, GameObject target, int depth) {
         if (depth == nodes.Length)
             return false;
-
+        for (int i = 0; i < nodes.Length; i++) {
+            Debug.Log(nodes[i].name);
+        }
         Vector3 currentPos = current.transform.position;
-        Vector3 targetPos = target.transform.position;
+        Vector3 targetPos = GameObject.FindGameObjectWithTag("Player").transform.position;
+        Debug.Log("current: " + current.name + " " + currentPos);
+        Debug.Log("target: " + target.name + " " + targetPos);
+        Debug.DrawRay(currentPos, targetPos);
+        Debug.Break();
         // does currentPos have line of sight to target? 
         if(lineOfSight(currentPos, target))
             return true;
@@ -89,11 +104,11 @@ public class stateMachine {
         // and call Astar on the one that's closest to target
         return Astar(closest, nodes, path, target, depth + 1);
     }
-
-    bool lineOfSight(Vector3 start, GameObject target) {
+     bool lineOfSight(Vector3 start, GameObject target) {
         Vector3 end = target.transform.position;
         Vector3 direction = (end - start).normalized;
         RaycastHit2D rayHit = Physics2D.Raycast(start, direction);
+        Debug.DrawLine(start, target.transform.position);
         if (rayHit.transform == target.transform)
             return true;
         return false;
