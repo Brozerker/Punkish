@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+
+public enum DIRECTION { UP, DOWN, LEFT, RIGHT }
 
 public class PlayerManager : MonoBehaviour {
     public float speed = 0.5f;
@@ -47,10 +50,10 @@ public class PlayerManager : MonoBehaviour {
          if (Input.GetKey("up"))                { GetComponent<SpriteRenderer>().sprite = up; }
 
         //Attack Direction
-         if (GetComponent<SpriteRenderer>().sprite == left && Input.GetKey("space")) { GetComponent<SpriteRenderer>().sprite = attk_left; }
-         if (GetComponent<SpriteRenderer>().sprite == right && Input.GetKey("space")) { GetComponent<SpriteRenderer>().sprite = attk_right; }
-         if (GetComponent<SpriteRenderer>().sprite == down && Input.GetKey("space")) { GetComponent<SpriteRenderer>().sprite = attk_down; }
-         if (GetComponent<SpriteRenderer>().sprite == up && Input.GetKey("space")) { GetComponent<SpriteRenderer>().sprite = attk_up; }
+         if (GetComponent<SpriteRenderer>().sprite == left && Input.GetKey("space")) { GetComponent<SpriteRenderer>().sprite = attk_left; Attack(Vector3.left); }
+         if (GetComponent<SpriteRenderer>().sprite == right && Input.GetKey("space")) { GetComponent<SpriteRenderer>().sprite = attk_right; Attack(Vector3.right); }
+         if (GetComponent<SpriteRenderer>().sprite == down && Input.GetKey("space")) { GetComponent<SpriteRenderer>().sprite = attk_down; Attack(Vector3.down); }
+         if (GetComponent<SpriteRenderer>().sprite == up && Input.GetKey("space")) { GetComponent<SpriteRenderer>().sprite = attk_up; Attack(Vector3.up); }
 
 
          if (Input.GetKeyDown(KeyCode.B))
@@ -59,6 +62,24 @@ public class PlayerManager : MonoBehaviour {
          }
         
 	}
+
+    private void Attack(Vector3 direction) {
+        BoxCollider2D hitZone = this.gameObject.AddComponent<BoxCollider2D>();
+        //Instantiate<BoxCollider2D>(hitZone);
+        hitZone.offset = 0.5f*direction;
+        hitZone.size = new Vector3(0.5f,0.5f,0);
+        Debug.Break();
+        Debug.Log(hitZone.transform.position);        
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        for (int i = 0; i < enemies.Length; ++i) {
+            if (hitZone.OverlapPoint(enemies[i].transform.position)) {
+                Destroy(enemies[i]);
+                break;
+            }
+        }
+        Destroy(hitZone);
+    }
+        
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -73,8 +94,7 @@ public class PlayerManager : MonoBehaviour {
         if (collision.gameObject.tag == "Item") //If we collide with an item that we can pick up
         {
             inventory.AddItem(collision.gameObject.GetComponent<Item>()); //Adds the item to the inventory.
-
-           Destroy(collision.gameObject);
+            Destroy(collision.gameObject.GetComponent<Item>());
         }
 
         //if (collision.gameObject.tag == "Enemy" && Input.GetKeyDown("space"))

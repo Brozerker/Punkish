@@ -6,13 +6,15 @@ public enum STATES { IDLE, SEEK, PATHFOLLOW, ATTACK}
 
 public class stateMachine {
     private STATES state;
+    private bool pathFollowing = false;
+    private List<GameObject> path;
 
     public stateMachine() {
         state = STATES.IDLE; 
     }
-    public void Update(enemyManager agent, GameObject[] nodes) {
+    public void Update(enemyManager agent, List<GameObject> nodes) {
         GameObject player = GameObject.FindWithTag("Player");
-        Debug.Log(state, agent);
+        //Debug.Log(state, agent);
         switch (state) {
             case STATES.IDLE:
                 Idle(agent, player); // checks if player is within range -> switches to seek
@@ -25,12 +27,14 @@ public class stateMachine {
                 if (!agent.lineOfSight(player))
                     state = STATES.PATHFOLLOW;
                 break;
-            case STATES.PATHFOLLOW:
-                GameObject[] path = new GameObject[nodes.Length];
-                if (Astar(agent.gameObject, nodes, path, player, 0)) {
-                    Debug.Log("Astar");
-                    PathFollow(agent, path);
+            case STATES.PATHFOLLOW:   
+                if (!pathFollowing) {
+                    pathFollowing = true;
+                    if (Astar(agent.gameObject, nodes, path, player, 0)) {
+                        Debug.Log("Astar");   
+                    }
                 }
+                PathFollow(agent, path);
                 break;
             case STATES.ATTACK:
                 if (Vector3.Distance(agent.transform.position, player.transform.position) > 3)
@@ -61,49 +65,54 @@ public class stateMachine {
         }
     }
 
-    void PathFollow(enemyManager agent, GameObject[] nodes) {
-        for (int i = 0; i < nodes.Length; ++i) {
-            if (Vector3.Distance(agent.gameObject.transform.position, nodes[i].transform.position) > 3) {
+    void PathFollow(enemyManager agent, List<GameObject> nodes) {
+        for (int i = 0; i < nodes.Count; ++i) {
+            if (Vector3.Distance(agent.gameObject.transform.position, nodes[i].transform.position) > 3) 
                 i--;
-            }
-            Seek(agent, nodes[i]);
+            if (Vector3.Distance(agent.gameObject.transform.position, nodes[i].transform.position) < 3)
+                pathFollowing = false;   
+            Seek(agent, nodes[i]);            
         }
     }
 
-    bool Astar(GameObject current, GameObject[] nodes, GameObject[] path, GameObject target, int depth) {
-        if (depth == nodes.Length)
+    bool Astar(GameObject current, List<GameObject> nodes, List<GameObject> path, GameObject target, int depth) {
+        Debug.Log(current.name + target.name + path.Count + depth);
+        Debug.Break();
+        if (depth == nodes.Count) {
+            Debug.Log("False");
+            Debug.Break();
             return false;
-        for (int i = 0; i < nodes.Length; i++) {
-            Debug.Log(nodes[i].name);
         }
         Vector3 currentPos = current.transform.position;
         Vector3 targetPos = GameObject.FindGameObjectWithTag("Player").transform.position;
         Debug.Log("current: " + current.name + " " + currentPos);
         Debug.Log("target: " + target.name + " " + targetPos);
-        Debug.DrawRay(currentPos, targetPos);
-        Debug.Break();
+        Debug.DrawLine(currentPos, targetPos);
+        
         // does currentPos have line of sight to target? 
-        if(lineOfSight(currentPos, target))
+        if (lineOfSight(currentPos, target)) {
+            Debug.Log("true");
+            Debug.Break();
             return true;
+        }
       
         // otherwise create a list of the nodes that currentPos can see 
         List<GameObject> visibleNodes = new List<GameObject>();
-        int count = 0;
-        for (int i = 0; i < nodes.Length; ++i) {
+        for (int i = 0; i < nodes.Count; ++i) {
             if (lineOfSight(currentPos, nodes[i])) {
                 visibleNodes.Add(nodes[i]);
-                count++;
             }
         }
         GameObject closest = visibleNodes[0];
-        for (int i = 1; i < count; ++i) {
+        for (int i = 1; i < visibleNodes.Count; ++i) {
             if (Vector3.Distance(targetPos, closest.transform.position) > Vector3.Distance(targetPos, visibleNodes[i].transform.position))
                 closest = visibleNodes[i];
         }
         path[depth] = closest;
         // and call Astar on the one that's closest to target
-        return Astar(closest, nodes, path, target, depth + 1);
+        return Astar(closest, nodes, path, target, (depth + 1));
     }
+
      bool lineOfSight(Vector3 start, GameObject target) {
         Vector3 end = target.transform.position;
         Vector3 direction = (end - start).normalized;
