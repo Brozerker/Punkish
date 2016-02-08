@@ -47,7 +47,7 @@ public class enemyManager : MonoBehaviour {
         Vector3 start = transform.position;
         Vector3 end = target.transform.position;
         Vector3 direction = (end - start).normalized;
-        start += direction;
+        start += 5 * direction;
         rayHit = Physics2D.Raycast(start, direction, losRange);
         Debug.DrawRay(start, direction*losRange, Color.red);
         Debug.Log(rayHit.collider.gameObject.name);
