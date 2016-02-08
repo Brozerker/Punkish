@@ -27,15 +27,15 @@ public class enemyManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-<<<<<<< HEAD
+
         Vector2 moveDirection = GetComponent<Rigidbody2D>().velocity;
         if (moveDirection != Vector2.zero) {
             float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
             //transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
-=======
-        Vector3 moveDirection = GetComponent<Rigidbody2D>().velocity;
->>>>>>> origin/master
+
+        //Vector3 moveDirection = GetComponent<Rigidbody2D>().velocity;
+
         if (moveDirection.x < 0) {
             GetComponent<SpriteRenderer>().sprite = left;
         }
@@ -57,8 +57,8 @@ public class enemyManager : MonoBehaviour {
         Vector3 direction = (end - start).normalized;
         start += 5 * direction;
         rayHit = Physics2D.Raycast(start, direction, losRange);
-        Debug.DrawRay(start, direction*losRange, Color.red);
-        Debug.Log(rayHit.collider.gameObject.name);
+        //Debug.DrawRay(start, direction*losRange, Color.red);
+        //Debug.Log(rayHit.collider.gameObject.name);
         if (rayHit.collider != null) {
             if (rayHit.collider.gameObject == target)
                 return true;
