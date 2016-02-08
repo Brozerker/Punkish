@@ -27,8 +27,10 @@ public class stateMachine {
                 break;
             case STATES.PATHFOLLOW:
                 GameObject[] path = new GameObject[nodes.Length];
-                if (Astar(agent.gameObject, nodes, path, player, 0))
+                if (Astar(agent.gameObject, nodes, path, player, 0)) {
+                    Debug.Log("Astar");
                     PathFollow(agent, path);
+                }
                 break;
             case STATES.ATTACK:
                 if (Vector3.Distance(agent.transform.position, player.transform.position) > 3)
@@ -71,9 +73,15 @@ public class stateMachine {
     bool Astar(GameObject current, GameObject[] nodes, GameObject[] path, GameObject target, int depth) {
         if (depth == nodes.Length)
             return false;
-
+        for (int i = 0; i < nodes.Length; i++) {
+            Debug.Log(nodes[i].name);
+        }
         Vector3 currentPos = current.transform.position;
-        Vector3 targetPos = target.transform.position;
+        Vector3 targetPos = GameObject.FindGameObjectWithTag("Player").transform.position;
+        Debug.Log("current: " + current.name + " " + currentPos);
+        Debug.Log("target: " + target.name + " " + targetPos);
+        Debug.DrawRay(currentPos, targetPos);
+        Debug.Break();
         // does currentPos have line of sight to target? 
         if(lineOfSight(currentPos, target))
             return true;
